@@ -16,9 +16,9 @@ def batch(data,type,l, sf):
         datasetxyz = []
         for img in data:
             img = plt.imread(img)
-            if len(img.shape)>2:
-                img = img[:,:,0]
-            img = img[::sf,::sf]
+            if len(img.shape) > 2:
+                img = img[:, :, 0]
+            img = img[::sf, ::sf]
             x_max, y_max= img.shape[:]
             phases = np.unique(img)
             data = np.empty([32 * 900, len(phases), l, l])
@@ -53,7 +53,7 @@ def batch(data,type,l, sf):
         for dim in range(3):
             data = np.empty([32 * 900, len(vals), l, l])
             print('dataset ', dim)
-            for i in range(32*900):
+            for i in range(32 * 900):
                 x = np.random.randint(0, x_max - l)
                 y = np.random.randint(0, y_max - l)
                 z = np.random.randint(0, z_max - l)
@@ -61,9 +61,9 @@ def batch(data,type,l, sf):
                 lay = np.random.randint(img.shape[dim]-1)
                 for cnt,phs in enumerate(list(vals)):
                     img1 = np.zeros([l,l])
-                    if dim==0:
+                    if dim == 0:
                         img1[img[lay, y:y + l, z:z + l] == phs] = 1
-                    elif dim==1:
+                    elif dim == 1:
                         img1[img[x:x + l,lay, z:z + l] == phs] = 1
                     else:
                         img1[img[x:x + l, y:y + l,lay] == phs] = 1
@@ -81,12 +81,12 @@ def batch(data,type,l, sf):
             dataset = torch.utils.data.TensorDataset(data)
             datasetxyz.append(dataset)
 
-    elif type=='colour':
+    elif type == 'colour':
         ## Create a data store and add random samples from the full image
         datasetxyz = []
         for img in data:
             img = plt.imread(img)
-            img = img[::sf,::sf,:]
+            img = img[::sf, ::sf, :3]
             ep_sz = 32 * 900
             data = np.empty([ep_sz, 3, l, l])
             x_max, y_max = img.shape[:2]
@@ -94,13 +94,13 @@ def batch(data,type,l, sf):
                 x = np.random.randint(0, x_max - l)
                 y = np.random.randint(0, y_max - l)
                 # create one channel per phase for one hot encoding
-                data[i, 0, :, :] = img[x:x + l, y:y + l,0]
-                data[i, 1, :, :] = img[x:x + l, y:y + l,1]
-                data[i, 2, :, :] = img[x:x + l, y:y + l,2]
+                data[i, 0, :, :] = img[x:x + l, y:y + l, 0]
+                data[i, 1, :, :] = img[x:x + l, y:y + l, 1]
+                data[i, 2, :, :] = img[x:x + l, y:y + l, 2]
             print('converting')
             if Testing:
-                datatest = np.swapaxes(data,1,3)
-                datatest = np.swapaxes(datatest,1,2)
+                datatest = np.swapaxes(data, 1, 3)
+                datatest = np.swapaxes(datatest, 1, 2)
                 for j in range(5):
                     plt.imshow(datatest[j, :, :, :])
                     plt.pause(0.5)
@@ -110,7 +110,7 @@ def batch(data,type,l, sf):
             data = torch.FloatTensor(data)
             dataset = torch.utils.data.TensorDataset(data)
             datasetxyz.append(dataset)
-    elif type=='grayscale':
+    elif type == 'grayscale':
         datasetxyz = []
         for img in data:
             img = plt.imread(img)
