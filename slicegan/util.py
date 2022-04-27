@@ -168,6 +168,20 @@ def test_plotter(img, slcs, imtype, pth):
     plt.savefig(pth + '_slices.png')
     plt.close()
 
+
+def data_augmentation(image_data):
+    """
+    Augmenting the image data for random flip or 90 deg rotation.
+    :param image_data: the image data to random rotate/flip. The axis are
+    [..., width, height]
+    :return: A random rotation/flip of the data.
+    """
+    if torch.randint(2, (1,)).item() == 1:  # flip
+        image_data = image_data.flip(-1)
+    rotation_idx = torch.randint(4, (1,)).item()
+    return torch.rot90(image_data, rotation_idx, [-2, -1])  # rotation
+
+
 def graph_plot(data,labels,pth,name):
     """
     simple plotter for all the different graphs
