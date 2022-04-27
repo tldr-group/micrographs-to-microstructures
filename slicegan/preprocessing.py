@@ -21,7 +21,7 @@ def batch(data,type,l, sf):
             if len(img.shape) > 2:
                 img = img[:, :, 0]
             img = img[::sf, ::sf]
-            x_max, y_max= img.shape[:]
+            x_max, y_max = img.shape[:]
             phases = np.unique(img)
             data = np.empty([32 * 900, len(phases), l, l])
             for i in range(32 * 900):

@@ -9,6 +9,7 @@ import sys
 import wandb
 ## Training Utils
 
+
 def mkdr(proj,proj_dir,Training):
     """
     When training, creates a new project directory or overwrites an existing directory according to user input. When testing, returns the full project path
@@ -20,7 +21,7 @@ def mkdr(proj,proj_dir,Training):
     pth = proj_dir + '/' + proj
     if Training:
         try:
-            os.mkdir(pth)
+            os.makedirs(pth, exist_ok=True)
             return pth + '/' + proj
         except FileExistsError:
             print('Directory', pth, 'already exists. Enter new project name or hit enter to overwrite')
@@ -138,7 +139,7 @@ def post_proc(img,imtype):
     if imtype == 'grayscale':
         return 255*img[0][0]
 
-def test_plotter(img,slcs,imtype,pth):
+def test_plotter(img, slcs, imtype, pth):
     """
     creates a fig with 3*slc subplots showing example slices along the three axes
     :param img: raw input image
@@ -146,7 +147,7 @@ def test_plotter(img,slcs,imtype,pth):
     :param imtype: image type
     :param pth: where to save plot
     """
-    img = post_proc(img,imtype)
+    img = post_proc(img, imtype)
     fig, axs = plt.subplots(slcs, 3)
     if imtype == 'colour':
         for j in range(slcs):
@@ -163,7 +164,7 @@ def test_plotter(img,slcs,imtype,pth):
             axs[j, 0].imshow(img[j, :, :])
             axs[j, 1].imshow(img[:, j, :])
             axs[j, 2].imshow(img[:, :, j])
-    wandb.log({"example slices": plt})
+    wandb.log({"example slices": fig})
     plt.savefig(pth + '_slices.png')
     plt.close()
 

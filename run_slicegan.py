@@ -17,14 +17,14 @@ micrograph_dir = 'micrographs_final_cropped'
 
 # Run with False to show an image during or after training
 parser = argparse.ArgumentParser()
-parser.add_argument('-training', type=int)
-parser.add_argument('-micrograph_number', type=str)
+parser.add_argument('-training', type=int, default=1)
+parser.add_argument('-micrograph_number', type=str, default='007')
 args = parser.parse_args()
 Training, micrograph_num = args.training, args.micrograph_number
 # Define project name
-Project_name = 'microstructures'
+Project_name = 'microstructure' + micrograph_num
 # Specify project folder.
-Project_dir = 'Trained_Generators/' + micrograph_num
+Project_dir = 'Trained_Generators/'
 Project_path = util.mkdr(Project_name, Project_dir, Training)
 
 ## Data Processing
@@ -41,15 +41,19 @@ len_phases = len(np.unique(micrograph))
 # Define image  type (colour, grayscale, three-phase or two-phase.
 # n-phase materials must be segmented)
 if len_phases == 2:
+    img_channels = 2
     image_type = 'twophase'
 elif len_phases == 3:
+    img_channels = 3
     image_type = 'threephase'
 else:  # it is either grayscale or colour
     # check if it is colour:
     if (micrograph[:, :, 0] != micrograph[:, :, 1]).any():
+        img_channels = 3
         image_type = 'colour'
         data_type = 'colour'
     else:  # grayscale
+        img_channels = 1
         image_type = 'grayscale'
         data_type = 'grayscale'
 
@@ -59,7 +63,7 @@ wandb.init(project='mgraphs_to_mstructures',
 
 ## Network Architectures
 # Training image size, no. channels and scale factor vs raw data
-img_size, img_channels, scale_factor = 64, 3,  1
+img_size, scale_factor = 64,  1
 # z vector depth
 z_channels = 16
 # Layers in G and D

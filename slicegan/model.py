@@ -32,6 +32,8 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
     print('Loading Dataset...')
     dataset_xyz = preprocessing.batch(real_data, datatype, l, sf)
 
+    # TODO data augmentation
+
     ## Constants for NNs
     matplotlib.use('Agg')
     ngpu = 1
@@ -77,10 +79,6 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
         netDs.append(netD)
         optDs.append(optim.Adam(netDs[i].parameters(), lr=lrd, betas=(beta1, beta2)))
 
-    disc_real_log = []
-    disc_fake_log = []
-    gp_log = []
-    Wass_log = []
 
     print("Starting Training Loop...")
     # For each epoch
@@ -89,6 +87,7 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
         # sample data for each direction
         for i, (datax, datay, dataz) in enumerate(zip(dataloaderx, dataloadery, dataloaderz), 1):
             dataset = [datax, datay, dataz]
+
             ### Initialise
             ### Discriminator
             ## Generate fake image batch with G
@@ -103,6 +102,8 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
                 netD.zero_grad()
                 ##train on real images
                 real_data = data[0].to(device)
+
+                # TODO augmentation
                 out_real = netD(real_data).view(-1).mean()
                 ## train on fake images
                 # perform permutation + reshape to turn volume into batch of 2D images to pass to D
@@ -121,7 +122,7 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
             wandb.log({"gradient penalty": gradient_penalty.item()})
 
             ### Generator Training
-            if i % int(critic_iters) == 0:
+            if (i % int(critic_iters)) == 0:
                 netG.zero_grad()
                 errG = 0
                 noise = torch.randn(batch_size, nz, lz,lz,lz, device=device)
@@ -141,7 +142,7 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
                 optG.step()
 
             # Output training stats & show imgs
-            if i % 25 == 0:
+            if (i % 3) == 0:
                 netG.eval()
                 with torch.no_grad():
                     torch.save(netG.state_dict(), pth + '_Gen.pt')
@@ -153,6 +154,9 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
                     steps = len(dataloaderx)
                     util.calc_eta(steps, time.time(), start, i, epoch, num_epochs)
                     ###save example slices
+                    print('im in')
                     util.test_plotter(img, 5, imtype, pth)
 
                 netG.train()
+
+            print(i)
