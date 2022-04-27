@@ -9,6 +9,7 @@ from slicegan import model, networks, util
 import matplotlib.pyplot as plt
 import argparse
 import numpy as np
+import wandb
 import os
 
 micrograph_dir = 'micrographs_final_cropped'
@@ -51,6 +52,10 @@ else:  # it is either grayscale or colour
     else:  # grayscale
         image_type = 'grayscale'
         data_type = 'grayscale'
+
+wandb.init(project='mgraphs_to_mstructures',
+           name='mgraph_to_mstructure_' + micrograph_num,
+           entity='tldr-group')
 
 ## Network Architectures
 # Training image size, no. channels and scale factor vs raw data

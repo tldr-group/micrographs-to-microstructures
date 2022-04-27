@@ -5,6 +5,8 @@ import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import time
 import matplotlib
+import wandb
+
 
 def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
     """
@@ -113,10 +115,11 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
                 disc_cost.backward()
                 optimizer.step()
             #logs for plotting
-            disc_real_log.append(out_real.item())
-            disc_fake_log.append(out_fake.item())
-            Wass_log.append(out_real.item() - out_fake.item())
-            gp_log.append(gradient_penalty.item())
+            wandb.log({"real": out_real.item()})
+            wandb.log({"fake": out_fake.item()})
+            wandb.log({"wass": out_real.item() - out_fake.item()})
+            wandb.log({"gradient penalty": gradient_penalty.item()})
+
             ### Generator Training
             if i % int(critic_iters) == 0:
                 netG.zero_grad()
@@ -143,7 +146,7 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
                 with torch.no_grad():
                     torch.save(netG.state_dict(), pth + '_Gen.pt')
                     torch.save(netD.state_dict(), pth + '_Disc.pt')
-                    noise = torch.randn(1, nz,lz,lz,lz, device=device)
+                    noise = torch.randn(1, nz, lz, lz, lz, device=device)
                     img = netG(noise)
                     ###Print progress
                     ## calc ETA
@@ -151,8 +154,5 @@ def train(pth, imtype, datatype, real_data, Disc, Gen, nc, l, nz, sf):
                     util.calc_eta(steps, time.time(), start, i, epoch, num_epochs)
                     ###save example slices
                     util.test_plotter(img, 5, imtype, pth)
-                    # plotting graphs
-                    util.graph_plot([disc_real_log, disc_fake_log], ['real', 'perp'], pth, 'LossGraph')
-                    util.graph_plot([Wass_log], ['Wass Distance'], pth, 'WassGraph')
-                    util.graph_plot([gp_log], ['Gradient Penalty'], pth, 'GpGraph')
+
                 netG.train()

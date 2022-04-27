@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tifffile
 import sys
+import wandb
 ## Training Utils
 
 def mkdr(proj,proj_dir,Training):
@@ -162,6 +163,7 @@ def test_plotter(img,slcs,imtype,pth):
             axs[j, 0].imshow(img[j, :, :])
             axs[j, 1].imshow(img[:, j, :])
             axs[j, 2].imshow(img[:, :, j])
+    wandb.log({"example slices": plt})
     plt.savefig(pth + '_slices.png')
     plt.close()
 
