@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import tifffile
+
+
 def batch(data,type,l, sf):
     """
     Generate a batch of images randomly sampled from a training microstructure
@@ -11,7 +13,7 @@ def batch(data,type,l, sf):
     :param sf: scale factor
     :return:
     """
-    Testing = True
+    Testing = False
     if type == 'png' or type == 'jpg':
         datasetxyz = []
         for img in data:
