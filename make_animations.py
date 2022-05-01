@@ -134,7 +134,7 @@ def animate(netG):
     optix.set_float("denoiser_blend", 0.25)
     optix.add_postproc("Denoiser")
     # optix.set_ambient([0.1, 0.2, 0.3])
-    optix.set_background(10)
+    optix.set_background(255)
 
 
 
@@ -194,7 +194,7 @@ def save_animation():
     import os
     images = []
     frames = sorted(os.listdir('frames'))
-    for filename in frames:
+    for filename in frames[1:]:
         images.append(imageio.imread(f'frames/{filename}'))
     print(f'saving animation {Project_name}')
     imageio.mimsave(f'animations/{Project_name}.gif', images, fps=20)
