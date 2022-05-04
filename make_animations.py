@@ -7,8 +7,12 @@ import plotoptix.materials as m
 from plotoptix import NpOptiX, TkOptiX
 from scipy import ndimage
 import moviepy.editor as mp
+from moviepy.editor import *
+
 import imageio
 import os
+from time import time
+start = time()
 # Define project name
 parser = argparse.ArgumentParser()
 parser.add_argument('micro', type=str)
@@ -46,8 +50,8 @@ nseeds=10
 blur = 0.75
 interval_size = 360/nseeds
 netG.load_state_dict(torch.load(Project_path + '_Gen.pt'))
-res = 1920
-min_accum = 512
+res = 512
+min_accum = 500
 img = netG(noise[0].unsqueeze(0))
 image_type = 'twophase' if img.shape[1]==2 else 'grayscale' 
 print(img.shape, image_type)
@@ -74,6 +78,7 @@ class params():
     l = [-5, 10, 0]
     bind = bind
     c = c
+    fin = False
 def compute(rt: NpOptiX, delta: int) -> None: # compute scene updates in parallel to the raytracing
     interval = int(params.f//interval_size)
     # print(interval, params.f)
@@ -120,10 +125,12 @@ def update(rt: NpOptiX) -> None:
     # print("frames/frame_{:05d}.png".format(params.f))
     rt.save_image("frames/frame_{:05d}.png".format(params.f))    
     if params.f%nseeds ==0:
-        print(params.f)
+        print(params.f, time() - start)
+
     if params.f==360:
         save_animation()
         rt.close()
+        params.fin = True
         
 
 def animate(netG):
@@ -142,7 +149,7 @@ def animate(netG):
     optix.set_float("tonemap_gamma", gamma)
     optix.set_float("denoiser_blend", 0.25)
     optix.add_postproc("Denoiser")
-    optix.set_background(255)
+    optix.set_background(250)
     # img = util.post_proc(netG(noise[0].unsqueeze(0)), image_type)
     # if image_type == 'twophase':
 
@@ -168,17 +175,20 @@ def animate(netG):
     optix.set_ambient((0.3, 0.3, 0.3))
     x = n/2
     optix.start()
-
+    while not params.fin:
+        pass
 def save_animation():
-    
-    images = []
     frames = sorted(os.listdir('frames'))
-    for filename in frames[1:]:
-        images.append(imageio.imread(f'frames/{filename}'))
-    print(f'saving animation {Project_name}')
-    imageio.mimsave(f'animations/{Project_name}.gif', images, fps=20)
-    clip = mp.VideoFileClip(f'animations/{Project_name}.gif')
-    clip.write_videofile(f'animations/{Project_name}.mp4', fps=60)
-    os.remove(f'animations/{Project_name}.gif')
+    print('loading frames')
+    fps = 45
+    frame_duration = 1/fps
+    clips = [ImageClip(f'frames/{m}').set_duration(frame_duration)
+        for m in frames]
+    clip = concatenate_videoclips(clips, method="compose")
+    clip.write_videofile(f'animations/{Project_name}.mp4', fps=fps)
+    
+
 animate(netG)
+# save_animation()
+print('finished', time() - start)
 
