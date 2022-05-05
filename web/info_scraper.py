@@ -58,29 +58,39 @@ def find_and_print_text(soup_block, header):
             else:  # it needs to be a list
                 if header_txt in ["Keywords", "Categories"]:
                     return return_comma_list(text_from_site)
-                if header_txt == "Composition":
+                if header_txt == "Composition":  # a bit tricky:
                     comma_list = return_comma_list(text_from_site)
                     element_list = [re.findall(r"[a-zA-Z]*", txt)[0] for txt in
                                     comma_list]
                     bool1_list = [bool(re.findall(r"^[a-zA-Z]+\s\d", txt)) for
-                                 txt in comma_list]
+                                  txt in comma_list]
                     bool2_list = [bool(re.findall(r"^[a-zA-Z]+$", txt)) for
-                                 txt in comma_list]
+                                  txt in comma_list]
                     return [element_list[i] if bool1_list[i] or bool2_list[i]
                             else "long description" for i in
                             range(len(comma_list))]
-
-            # print(f"{header}: {soup_block.findNext('dd').text}")
 
 
 for micro_num in micro_nums:
     # Get the micrograph number:
     num_wo_0 = re.compile(r"[1-9]\d*").findall(micro_num)[0]
 
-    inside_dict = {"name": f"Micrograph {num_wo_0}"}
+
     # Get the url:
     record_url = f'https://www.doitpoms.ac.uk/miclib/full_record.php?id' \
                  f'={num_wo_0}'
+
+    # TODO is this the right url?
+    s3_dir = f"s3://microstructure-library/microstructure{micro_num}" \
+     "/microstructure{micro_num}"
+
+    inside_dict = {"name": f"Micrograph {num_wo_0}",
+                   "link_doitpoms": record_url,
+                   "data_2D": f"{s3_dir}_inpainted.png",
+                   "data_3D": f"{s3_dir}.tif",
+                   "preview": f"{s3_dir}.mp4",
+                   "movie": f"{s3_dir}.mp4"}
+
     record_request = requests.get(record_url)
     soup = BeautifulSoup(record_request.content, 'html.parser')
     # Where the relevant information is:
@@ -92,14 +102,17 @@ for micro_num in micro_nums:
             for key, value in text_to_key.items():
                 inside_dict_value = find_and_print_text(block, value)
                 if inside_dict_value:
-                    if key in ["keyword", "category", "element"]:
-                        print(inside_dict_value)
+                    inside_dict[key] = inside_dict_value
+    else:
+        for key, value in text_to_key.items():
+            if value[1] == "str":
+                inside_dict[key] = ''
+            else:
+                inside_dict[key] = ['']
+    print(inside_dict)
+    micro_dict[num_wo_0] = inside_dict
 
-    print()
-sorted_list = sorted(micro_nums)
-print()
-
-# s3://microstructure-library/microstructure001/microstructure001.tif
+print(micro_dict)
 
 # "0": {
 #     "name": "Micrograph 1",
