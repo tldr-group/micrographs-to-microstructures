@@ -109,6 +109,7 @@ for micro_num in micro_nums:
                 inside_dict[key] = ''
             else:
                 inside_dict[key] = ['']
+
     print(inside_dict)
     micro_dict[num_wo_0] = inside_dict
 
